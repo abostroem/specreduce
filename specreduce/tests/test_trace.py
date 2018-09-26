@@ -15,7 +15,7 @@ def make_2d_spec_image(amplitude=1.0, mean=None, stddev=None, disp_size=1024, xd
     image = np.tile(profile, (disp_size, 1)) + random_state.randn(disp_size, xdisp_size)*amplitude/SNR
     return image
     
-def make_2d_spec_cube(amplitude=1.0, mean_1=None, stddev_1=None, 
+def make_3d_spec_cube(amplitude=1.0, mean_1=None, stddev_1=None, 
                       mean_2=None, stddev_2=None,
                       disp_size=1024, xdisp_size_1=1024, xdisp_size_2=1024, 
                       seed=2, SNR=100):
@@ -44,29 +44,97 @@ def make_2d_spec_cube(amplitude=1.0, mean_1=None, stddev_1=None,
 # TESTS
 ########################
 def test_find_non_disp_dim_2D():
+    '''
+    Test basic functionality for an even number of pixels in 2D, disp axis=0
+    '''
     spec2d = np.ones((10,10))
     disp_axis = 1
     cross_disp_axis = trace.find_non_disp_dimensions(disp_axis, 2)
     assert cross_disp_axis == [0]
 
 def test_find_non_disp_dim_2D_second():
+    '''
+    Test basic functionality for an odd number of pixels in 2D, disp axis = 0
+    '''
     spec2d = np.ones((10,10))
     disp_axis = 0
     cross_disp_axis = trace.find_non_disp_dimensions(disp_axis, 2)
     assert cross_disp_axis == [1]
 
 def test_find_non_disp_dim_3D():
+    '''
+    Test basic functionality for an even number of pixels in 3D, disp_axis = 1
+    '''
     spec2d = np.ones((10,10, 10))
     disp_axis = 1
     cross_disp_axis = trace.find_non_disp_dimensions(disp_axis, 3)
     assert cross_disp_axis == [0,2]
     
 def test_find_non_disp_dim_3D_second():
+    '''
+    Test basic functionality for an even number of pixels, disp_axis = 0
+    '''
     spec2d = np.ones((10,10, 10))
     disp_axis = 0
     cross_disp_axis = trace.find_non_disp_dimensions(disp_axis, 3)
     assert cross_disp_axis == [1,2]
+    
+def test_find_spectrum_axis0_2D():
+    '''
+    Test that spectrum is found for 2D, even number of pixels, disp_axis=0
+    '''
+    xdisp_size=50
+    spec2d = make_2d_spec_image(disp_size=100, xdisp_size=xdisp_size)
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=0)
+    assert spec_loc_indx==(float(xdisp_size//2),)
+    
+def test_find_spectrum_axis0_2D_2():
+    '''
+    Test that spectrum is found for 2D, odd number of pixels, disp_axis=0
+    '''
+    xdisp_size=51
+    spec2d = make_2d_spec_image(disp_size=100, xdisp_size=xdisp_size)
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=0)
+    assert spec_loc_indx==(float(xdisp_size//2),)
+    
+def test_find_spectrum_axis1_2D():
+    '''
+    Test that spectrum is found for 2D, even number of pixels, disp_axis=1
+    '''
+    xdisp_size=50
+    spec2d = make_2d_spec_image(disp_size=100, xdisp_size=xdisp_size).T
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=1)
+    assert spec_loc_indx==(float(xdisp_size//2),)
 
+def test_find_spectrum_axis0_3D():
+    '''
+    Test that spectrum is found for 3D, even number of pixels, disp_axis=0
+    '''
+    xdisp_size_1=50
+    xdisp_size_2=50
+    spec2d = make_3d_spec_cube(disp_size=100, xdisp_size_1=xdisp_size_1, xdisp_size_2=xdisp_size_2)
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=0)
+    assert spec_loc_indx==(float(xdisp_size_1//2),float(xdisp_size_2//2))
+
+def test_find_spectrum_axis0_3D_2():
+    '''
+    Test that spectrum is found for 3D, even number of pixels, disp_axis=0, different spatial dims
+    '''
+    xdisp_size_1=50
+    xdisp_size_2=60
+    spec2d = make_3d_spec_cube(disp_size=100, xdisp_size_1=xdisp_size_1, xdisp_size_2=xdisp_size_2)
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=0)
+    assert spec_loc_indx==(float(xdisp_size_1//2),float(xdisp_size_2//2))
+
+def test_find_spectrum_axis2_3D():
+    '''
+    Test that spectrum is found for 3D, even number of pixels, disp_axis=2
+    '''
+    xdisp_size_1=50
+    xdisp_size_2=60
+    spec2d = np.transpose(make_3d_spec_cube(disp_size=100, xdisp_size_1=xdisp_size_1, xdisp_size_2=xdisp_size_2))
+    spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=2)
+    assert spec_loc_indx==(float(xdisp_size_2//2),float(xdisp_size_1//2))
 
 
  
