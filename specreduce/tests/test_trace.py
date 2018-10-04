@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from astropy.modeling import models
-from ..trace import find_spectrum
+from .. import trace
 
 def make_2d_spec_image(amplitude=1.0, mean=None, stddev=None, disp_size=1024, xdisp_size=1024,
                        seed=2, SNR=100):
@@ -136,15 +136,25 @@ def test_find_spectrum_axis2_3D():
     spec_loc_indx = trace.find_spectrum(spec2d, disp_axis=2)
     assert spec_loc_indx==(float(xdisp_size_2//2),float(xdisp_size_1//2))
 
-
- 
-
-def test_find_spectrum():
+def test_centroid():
     '''
+    Test that centroid is found for 2D, even number of pixeks disp_axis=0
     '''
-    indx = 512
-    image = make_2d_spec_image(amplitude=1.0, mean=indx, stddev=None, disp_size=1024, xdisp_size=1024,
-                       seed=2, SNR=100)
+    xdisp_size=50
+    disp_size=100
+    spec2d = make_2d_spec_image(xdisp_size=xdisp_size, disp_size=disp_size)
+    location = np.tile(np.arange(xdisp_size), (disp_size, 1))
+    centroid = trace.find_centroid(location, spec2d, axis=1)
+    assert np.isclose(centroid, np.ones(centroid.shape)*xdisp_size//2, rtol=1.0).all()
     
-    spec_indx = find_spectrum(image)
+def test_centroid_2():
+    '''
+    Test that centroid is found for 2D, even number of pixeks disp_axis=1
+    '''
+    xdisp_size=50
+    disp_size=100
+    spec2d = make_2d_spec_image(xdisp_size=xdisp_size, disp_size=disp_size).T
+    location = np.tile(np.arange(xdisp_size), (disp_size, 1)).T
+    centroid = trace.find_centroid(location, spec2d, axis=0)
+    assert np.isclose(centroid, np.ones(centroid.shape)*xdisp_size//2, rtol=1.0).all()
     
